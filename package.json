@@ -5,7 +5,16 @@
   "type": "module",
   "license": "MIT",
   "author": "Nicholas Nagai Roberts",
-  "keywords": ["llm", "eval", "evaluation", "zod", "gemini", "structured-output", "testing", "regression-testing"],
+  "keywords": [
+    "llm",
+    "eval",
+    "evaluation",
+    "zod",
+    "gemini",
+    "structured-output",
+    "testing",
+    "regression-testing"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nicknr100/schema-eval.git"
@@ -15,7 +24,7 @@
     "url": "https://github.com/nicknr100/schema-eval/issues"
   },
   "bin": {
-    "schema-eval": "./dist/cli.js"
+    "schema-eval": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
