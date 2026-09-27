@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { Provider } from "../types.ts";
 
-type GeminiInteraction = {
+export type GeminiInteraction = {
   status?: string;
   steps?: Array<{
     type?: string;
@@ -9,7 +9,7 @@ type GeminiInteraction = {
   }>;
 };
 
-function extractText(interaction: GeminiInteraction): string {
+export function extractText(interaction: GeminiInteraction): string {
   const modelOutput = [...(interaction.steps ?? [])].reverse().find((step) => step.type === "model_output");
   return (modelOutput?.content ?? [])
     .filter((item) => item.type === "text" && typeof item.text === "string")

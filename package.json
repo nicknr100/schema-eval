@@ -4,6 +4,8 @@
   "description": "Score how well an LLM's structured-output extraction matches expectations, and catch regressions when the prompt, schema, or model changes.",
   "type": "module",
   "license": "MIT",
+  "author": "Nicholas Nagai Roberts",
+  "keywords": ["llm", "eval", "evaluation", "zod", "gemini", "structured-output", "testing", "regression-testing"],
   "bin": {
     "schema-eval": "./dist/cli.js"
   },

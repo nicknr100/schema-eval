@@ -86,4 +86,16 @@ describe("scoreCase", () => {
     expect(fields[0].matched).toBe(true);
     expect(fields[0].matcher).toBe("override");
   });
+
+  it("falls back to deep-equal, rather than crashing, if a test case names a field the schema doesn't have", () => {
+    // Guards against a typo'd field name in cases.json silently vanishing —
+    // it still gets scored (and can still fail), just without a schema type
+    // to pick a smarter matcher from.
+    const fields = scoreCase(schema, { nonexistent_field: "x" }, { nonexistent_field: "x" });
+    expect(fields[0].matcher).toContain("field not in schema");
+    expect(fields[0].matched).toBe(true);
+
+    const mismatched = scoreCase(schema, { nonexistent_field: "x" }, { nonexistent_field: "y" });
+    expect(mismatched[0].matched).toBe(false);
+  });
 });
