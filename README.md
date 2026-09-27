@@ -1,5 +1,7 @@
 # schema-eval
 
+[![CI](https://github.com/nicknr100/schema-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/nicknr100/schema-eval/actions/workflows/ci.yml)
+
 Score how well an LLM's structured-output extraction matches what you
 expect, and catch it when a prompt, schema, or model change makes it worse —
 without rewriting a scorer by hand for every field of every project.
