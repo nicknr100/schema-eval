@@ -6,6 +6,12 @@ import { z } from "zod";
 import { runEval } from "../src/index.ts";
 import type { Provider, TestCase } from "../src/types.ts";
 
+/** Directory shared by the "bad input" tests below, so each fixture doesn't
+ * need its own throwaway provider/schema wiring. */
+async function tempDir() {
+  return mkdtemp(join(tmpdir(), "schema-eval-test-"));
+}
+
 /** Writes a config + cases file to a temp dir and returns the config path,
  * so runEval can be exercised through its real file-loading path (dynamic
  * import + JSON read) rather than only unit-testing the pieces in isolation. */
@@ -83,5 +89,41 @@ describe("runEval — pass/fail semantics", () => {
 
     const report = await runEval(configPath);
     expect(report.passed).toBe(false);
+  });
+});
+
+describe("runEval — clean errors instead of raw Node errors", () => {
+  it("names the exact resolved path when the config file doesn't exist", async () => {
+    await expect(runEval("/definitely/does/not/exist/schema-eval.config.ts")).rejects.toThrow(/Config file not found:.*schema-eval\.config\.ts/);
+  });
+
+  it("explains a config that forgot 'export default', rather than crashing on a missing field", async () => {
+    const dir = await tempDir();
+    await writeFile(join(dir, "schema-eval.config.ts"), `export const config = { model: "x" };`);
+
+    await expect(runEval(join(dir, "schema-eval.config.ts"))).rejects.toThrow(/does not export a config with a responseSchema/);
+  });
+
+  it("names the exact resolved path when the cases file doesn't exist", async () => {
+    const dir = await tempDir();
+    (globalThis as Record<string, unknown>).__testSchema2 = z.object({ value: z.string() });
+    await writeFile(
+      join(dir, "schema-eval.config.ts"),
+      `export default { model: "x", systemInstruction: "x", responseSchema: globalThis.__testSchema2, cases: "./missing.json" };`,
+    );
+
+    await expect(runEval(join(dir, "schema-eval.config.ts"))).rejects.toThrow(/Cases file not found:.*missing\.json/);
+  });
+
+  it("says which file is bad JSON, instead of a bare SyntaxError with no filename", async () => {
+    const dir = await tempDir();
+    (globalThis as Record<string, unknown>).__testSchema3 = z.object({ value: z.string() });
+    await writeFile(join(dir, "cases.json"), "{ this is not json");
+    await writeFile(
+      join(dir, "schema-eval.config.ts"),
+      `export default { model: "x", systemInstruction: "x", responseSchema: globalThis.__testSchema3, cases: "./cases.json" };`,
+    );
+
+    await expect(runEval(join(dir, "schema-eval.config.ts"))).rejects.toThrow(/cases\.json is not valid JSON/);
   });
 });

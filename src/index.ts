@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { scoreCase } from "./matcher.ts";
@@ -13,21 +14,59 @@ export { geminiProvider } from "./providers/gemini.ts";
  * plain dynamic import. Node's own type-stripping support (22.6+, no flag
  * needed from Node 23.6 on) is what makes this work without a separate
  * loader — the same reason the config format is a real .ts module and not
- * JSON: it needs to hold a live zod schema, not a serialised one. */
+ * JSON: it needs to hold a live zod schema, not a serialised one.
+ *
+ * Errors here are deliberately split into two cases: the config file itself
+ * being missing (clear, actionable, points at the exact resolved path) vs.
+ * the file existing but throwing on import (a bug in the config, or one of
+ * its own imports missing — e.g. it was copied somewhere without its
+ * project's node_modules). Both used to surface as a raw Node
+ * ERR_MODULE_NOT_FOUND, which doesn't tell you which of the two happened. */
 async function loadConfig(configPath: string): Promise<{ config: EvalConfig; dir: string }> {
   const absolute = resolve(configPath);
-  const mod = await import(absolute);
+
+  if (!existsSync(absolute)) {
+    throw new Error(
+      `Config file not found: ${absolute}\n` +
+        `  Pass --config <path>, or create schema-eval.config.ts in the current directory.`,
+    );
+  }
+
+  let mod: Record<string, unknown>;
+  try {
+    mod = await import(absolute);
+  } catch (err) {
+    throw new Error(
+      `Failed to load ${absolute}:\n  ${(err as Error).message}\n` +
+        `  If this names a missing package, the config file needs to live inside a project ` +
+        `that has that package installed (e.g. zod) — not in an empty folder.`,
+    );
+  }
+
   const config = (mod.default ?? mod) as EvalConfig;
   if (!config?.responseSchema) {
-    throw new Error(`${configPath} does not export a config with a responseSchema — did you forget "export default"?`);
+    throw new Error(`${absolute} does not export a config with a responseSchema — did you forget "export default"?`);
   }
   return { config, dir: dirname(absolute) };
 }
 
 async function loadCases(casesPath: string, configDir: string): Promise<TestCase[]> {
   const absolute = resolve(configDir, casesPath);
-  const raw = await readFile(absolute, "utf8");
-  return JSON.parse(raw) as TestCase[];
+
+  let raw: string;
+  try {
+    raw = await readFile(absolute, "utf8");
+  } catch {
+    throw new Error(
+      `Cases file not found: ${absolute}\n` + `  Check the "cases" path in your config — it's resolved relative to the config file, not the cwd.`,
+    );
+  }
+
+  try {
+    return JSON.parse(raw) as TestCase[];
+  } catch (err) {
+    throw new Error(`${absolute} is not valid JSON: ${(err as Error).message}`);
+  }
 }
 
 /** Runs every case in `config.cases` against `config.provider` (Gemini by

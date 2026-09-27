@@ -14,9 +14,17 @@ program
   .description("Run all test cases against the model and report the score.")
   .option("-c, --config <path>", "path to the config file", "schema-eval.config.ts")
   .action(async (options: { config: string }) => {
-    const report = await runEval(options.config);
-    console.log(formatReport(report));
-    if (!report.passed) process.exitCode = 1;
+    try {
+      const report = await runEval(options.config);
+      console.log(formatReport(report));
+      if (!report.passed) process.exitCode = 1;
+    } catch (err) {
+      // A clean one-line-per-paragraph message, not a raw stack trace — the
+      // errors thrown by loadConfig/loadCases are already written to read
+      // well printed exactly like this.
+      console.error((err as Error).message);
+      process.exitCode = 1;
+    }
   });
 
 program.parseAsync(process.argv);
