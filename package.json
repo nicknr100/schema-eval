@@ -1,0 +1,43 @@
+{
+  "name": "schema-eval",
+  "version": "0.1.0",
+  "description": "Score how well an LLM's structured-output extraction matches expectations, and catch regressions when the prompt, schema, or model changes.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "schema-eval": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "node --experimental-strip-types src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^5.0.1"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}

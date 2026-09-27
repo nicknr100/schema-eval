@@ -1,0 +1,31 @@
+[
+  {
+    "input": "Find an algorithms student for quiet Tuesday evening sessions",
+    "expected": {
+      "course_terms": ["algorithms"],
+      "availability_terms": ["Tuesday evening"],
+      "preference_terms": ["quiet"]
+    }
+  },
+  {
+    "input": "I want a third-year economics student who likes group study",
+    "expected": {
+      "preferred_years": [3],
+      "major_terms": ["economics"],
+      "preference_terms": ["group study"]
+    }
+  },
+  {
+    "input": "Someone taking CSCE11",
+    "expected": {
+      "course_terms": ["CSCE11"]
+    }
+  },
+  {
+    "input": "A beginner-friendly programming partner",
+    "expected": {
+      "course_terms": ["programming"],
+      "preference_terms": ["beginner-friendly"]
+    }
+  }
+]
